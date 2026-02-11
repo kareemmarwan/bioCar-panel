@@ -1,0 +1,270 @@
+You are a senior frontend architect specialized in scalable admin dashboards.
+
+Build a production-ready Pharmacy Admin Dashboard (Frontend Only) using:
+
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- Shadcn/UI
+- Redux Toolkit
+- RTK Query (for API integration only)
+- Recharts (for analytics)
+- Clean modular architecture
+- Scalable folder structure
+
+IMPORTANT:
+This project is FRONTEND ONLY.
+The backend already exists.
+Do NOT create API routes inside Next.js.
+All data must be fetched from external REST API.
+Use environment variables for API base URL.
+
+--------------------------------------------------
+PROJECT GOAL
+--------------------------------------------------
+
+Create a professional pharmacy management dashboard used by:
+
+- Pharmacy Owner
+- Admin
+
+The dashboard manages:
+
+- Products
+- Inventory
+- Orders
+- Drivers
+- Deliveries
+- Categories
+- Advertisements
+- Notifications
+- Analytics
+
+--------------------------------------------------
+ARCHITECTURE RULES
+--------------------------------------------------
+
+1) No backend logic inside Next.js.
+2) Use RTK Query for:
+   - Fetching
+   - Mutations
+   - Caching
+3) Use Redux Toolkit for:
+   - Auth state
+   - User role
+   - UI state (sidebar, theme, modals)
+4) Use Client Components where needed.
+5) Use App Router structure.
+6) Implement role-based route protection.
+7) Strong TypeScript typing for all models.
+8) Separate features by folder.
+
+--------------------------------------------------
+FOLDER STRUCTURE
+--------------------------------------------------
+
+src/
+ ├── app/
+ │    ├── login/
+ │    ├── dashboard/
+ │    │    ├── products/
+ │    │    ├── orders/
+ │    │    ├── drivers/
+ │    │    ├── inventory/
+ │    │    ├── categories/
+ │    │    ├── ads/
+ │    │    ├── notifications/
+ │    │    └── page.tsx
+ │
+ ├── store/
+ │    ├── store.ts
+ │    ├── authSlice.ts
+ │    ├── uiSlice.ts
+ │    └── api/
+ │         ├── baseApi.ts
+ │         ├── productsApi.ts
+ │         ├── ordersApi.ts
+ │         ├── driversApi.ts
+ │         ├── inventoryApi.ts
+ │         ├── adsApi.ts
+ │         └── notificationsApi.ts
+ │
+ ├── components/
+ │    ├── layout/
+ │    ├── tables/
+ │    ├── forms/
+ │    ├── charts/
+ │    └── shared/
+ │
+ ├── hooks/
+ ├── types/
+ └── lib/
+
+--------------------------------------------------
+AUTH SYSTEM
+--------------------------------------------------
+
+- Login page
+- Receive JWT token from backend
+- Store token in Redux
+- Attach token automatically in RTK Query headers
+- Protect dashboard routes
+- Role-based access (Owner / Admin)
+
+--------------------------------------------------
+DASHBOARD OVERVIEW PAGE
+--------------------------------------------------
+
+Show:
+
+- Total Orders
+- Paid Orders
+- Orders in Delivery
+- Pending Orders
+- Cancelled Orders
+- Total Revenue
+- Total Profit
+- Total Products
+- Low Stock Products
+- Total Drivers
+
+Charts using Recharts:
+
+- Monthly sales
+- Orders trend
+- Revenue trend
+- Top selling products
+
+--------------------------------------------------
+PRODUCT MANAGEMENT
+--------------------------------------------------
+
+Full CRUD:
+
+Fields:
+- Name
+- SKU
+- Description
+- Category
+- Price
+- Discount price
+- Discount percentage
+- Cost price
+- Profit (calculated)
+- Stock quantity
+- Low stock threshold
+- Keywords
+- Product type (Medical / Cosmetic)
+- Status (Active / Hidden)
+- Images
+
+Features:
+- Search
+- Filter
+- Pagination
+- Bulk actions
+- Stock auto update
+- Profit display
+
+--------------------------------------------------
+INVENTORY MANAGEMENT
+--------------------------------------------------
+
+- Show current stock
+- Sold quantity
+- Remaining quantity
+- Low stock alerts
+- Update stock manually
+
+--------------------------------------------------
+ORDER MANAGEMENT
+--------------------------------------------------
+
+Order Status:
+
+- Pending
+- Paid
+- Preparing
+- Assigned to Driver
+- Out for Delivery
+- Delivered
+- Cancelled
+
+Features:
+
+- Change status
+- Confirm payment
+- Assign driver
+- Order details modal
+- Filter by status
+- Search by phone / ID
+- Invoice preview
+
+--------------------------------------------------
+DRIVER MANAGEMENT
+--------------------------------------------------
+
+- Add / Edit / Delete driver
+- Driver status
+- Assign orders
+- View driver performance
+- Delivery statistics
+
+--------------------------------------------------
+DELIVERY MANAGEMENT
+--------------------------------------------------
+
+- Assigned orders
+- Unassigned orders
+- Delivery tracking
+- Delivery performance
+
+--------------------------------------------------
+ADVERTISEMENT MANAGEMENT
+--------------------------------------------------
+
+- Create banner
+- Image upload
+- Link
+- Status toggle
+- Schedule start/end date
+
+--------------------------------------------------
+NOTIFICATIONS SYSTEM
+--------------------------------------------------
+
+- Send notification to all users
+- Send to specific users
+- Trigger when new order arrives
+- View notification history
+
+--------------------------------------------------
+UI REQUIREMENTS
+--------------------------------------------------
+
+- Professional pharmacy design
+- Medical green theme
+- Fully responsive
+- Sidebar layout
+- Dark mode support
+- Loading skeletons
+- Toast notifications
+- Confirm dialogs
+- Data tables with pagination
+- Clean empty states
+- Error handling UI
+
+--------------------------------------------------
+CODE QUALITY
+--------------------------------------------------
+
+- TypeScript strict mode
+- Strong interfaces for models
+- Reusable components
+- Custom hooks
+- No duplicated logic
+- Centralized API configuration
+- Production-ready structure
+- Clean scalable architecture
+
+Build this as a real-world enterprise-level pharmacy admin dashboard frontend.
