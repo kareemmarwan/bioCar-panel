@@ -1,6 +1,269 @@
+
+
+// import { useState } from "react";
+// import { Layout } from "@/components/Layout";
+// import { useOrders, useUpdateOrder, useDriversList } from "@/hooks/use-orders";
+// import {
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableHead,
+//   TableHeader,
+//   TableRow,
+// } from "@/components/ui/table";
+// import { Badge } from "@/components/ui/badge";
+// import { Button } from "@/components/ui/button";
+// import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// import { Card, CardContent } from "@/components/ui/card";
+// import { Loader2, Truck, CheckCircle, FileText, ExternalLink, MapPin } from "lucide-react";
+// import { format } from "date-fns";
+// import {
+//   Tooltip,
+//   TooltipContent,
+//   TooltipProvider,
+//   TooltipTrigger,
+// } from "@/components/ui/tooltip";
+
+// const IMAGE_BASE_URL = "http://localhost:3000";
+
+// export default function Orders() {
+//   const [statusFilter, setStatusFilter] = useState("all");
+  
+//   const { data: orders, isLoading } = useOrders({ 
+//     status: statusFilter === "all" ? undefined : statusFilter
+//   });
+
+//   const { data: drivers } = useDriversList();
+//   const updateOrder = useUpdateOrder();
+
+//   const getStatusColor = (status: string) => {
+//     const s = status?.toLowerCase();
+//     switch (s) {
+//       case 'delivered': return 'bg-green-100 text-green-700 border-green-200';
+//       case 'pending': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+//       case 'assigned': return 'bg-blue-100 text-blue-700 border-blue-200';
+//       case 'accepted': return 'bg-blue-100 text-blue-700 border-blue-200';
+//       case 'ondelivery': return 'bg-purple-100 text-purple-700 border-purple-200';
+//       case 'cancelled': return 'bg-red-100 text-red-700 border-red-200';
+//       default: return 'bg-gray-100 text-gray-700 border-gray-200';
+//     }
+//   };
+
+//   const formatDate = (dateInput: any) => {
+//     if (!dateInput) return "N/A";
+//     const dateStr = dateInput.$date ? dateInput.$date : dateInput;
+//     try {
+//       return format(new Date(dateStr), "MMM d, yyyy HH:mm");
+//     } catch (e) {
+//       return "Invalid Date";
+//     }
+//   };
+
+//   return (
+//     <Layout>
+//       <div className="flex flex-col gap-1 mb-6">
+//         <h1 className="text-3xl font-display font-bold text-foreground tracking-tight">Orders Management</h1>
+//         <p className="text-muted-foreground">Monitor customer purchases, payments, and shipping status.</p>
+//       </div>
+
+//       <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full mb-6">
+//         <TabsList className="bg-card border border-border/50 p-1">
+//           <TabsTrigger value="all">All Orders</TabsTrigger>
+//           <TabsTrigger value="pending">Pending</TabsTrigger>
+//           <TabsTrigger value="assigned">assigned</TabsTrigger> 
+//           <TabsTrigger value="accepted">Accepted</TabsTrigger>          
+//           <TabsTrigger value="onDelivery">On Delivery</TabsTrigger>
+//           <TabsTrigger value="delivered">Delivered</TabsTrigger>
+//           <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+//         </TabsList>
+//       </Tabs>
+
+//       <Card className="border-border/50 shadow-sm overflow-hidden">
+//         <CardContent className="p-0">
+//           <Table>
+//             <TableHeader className="bg-muted/50">
+//               <TableRow>
+//                 <TableHead className="w-[150px]">Date & Time</TableHead>
+//                 <TableHead>Customer Details</TableHead>
+//                 <TableHead>Items</TableHead>
+//                 <TableHead>Amount</TableHead>
+//                 <TableHead>Payment Proof</TableHead>
+//                 <TableHead>Status Control</TableHead>
+//                 <TableHead>Driver Assignment</TableHead>
+//                 <TableHead className="text-right">Quick Actions</TableHead>
+//               </TableRow>
+//             </TableHeader>
+            
+//             <TableBody>
+//               {isLoading ? (
+//                 <TableRow>
+//                   <TableCell colSpan={8} className="h-32 text-center">
+//                     <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+//                       <Loader2 className="w-6 h-6 animate-spin text-primary" />
+//                       <p className="text-sm font-medium">Fetching orders...</p>
+//                     </div>
+//                   </TableCell>
+//                 </TableRow>
+//               ) : orders?.length === 0 ? (
+//                 <TableRow>
+//                   <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+//                     No orders found for this category.
+//                   </TableCell>
+//                 </TableRow>
+//               ) : (
+//                 orders?.map((order: any) => {
+//                   const displayItems = order.items || order.products || [];
+
+//                   return (
+//                     <TableRow key={order._id || order.dbId} className="hover:bg-muted/30 transition-colors">
+//                       <TableCell className="text-xs font-medium">
+//                         {formatDate(order.createdAt)}
+//                       </TableCell>
+//                       <TableCell>
+//                         <div className="flex flex-col">
+//                           <span className="font-semibold text-sm">{order.customerName}</span>
+//                           <span className="text-[11px] text-muted-foreground font-mono">
+//                             {order.customerIdNumber || order.id}
+//                           </span>
+//                           <div className="flex items-center gap-1 text-[11px] text-primary mt-0.5">
+//                             <MapPin className="w-3 h-3" />
+//                             <span className="truncate max-w-[120px]">{order.customerAddress}</span>
+//                           </div>
+//                         </div>
+//                       </TableCell>
+//                       <TableCell>
+//                         <TooltipProvider>
+//                           <Tooltip>
+//                             <TooltipTrigger asChild>
+//                               <div className="text-xs cursor-default max-w-[150px] truncate bg-muted/50 px-2 py-1 rounded">
+//                                 {displayItems.length > 0 
+//                                   ? displayItems.map((p: any) => `${p.product?.name || p.name || 'Product'} (x${p.quantity})`).join(", ")
+//                                   : "No items"}
+//                               </div>
+//                             </TooltipTrigger>
+//                             <TooltipContent>
+//                               <ul className="text-xs space-y-1">
+//                                 {displayItems.map((p: any, i: number) => (
+//                                   <li key={i}>
+//                                     {p.product?.name || p.name || 'Product'} - Qty: {p.quantity} - ${(p.price || 0).toFixed(2)}
+//                                   </li>
+//                                 ))}
+//                               </ul>
+//                             </TooltipContent>
+//                           </Tooltip>
+//                         </TooltipProvider>
+//                       </TableCell>
+//                       <TableCell className="font-bold text-sm">
+//                         ${(order.totalAmount || order.total || 0).toFixed(2)}
+//                       </TableCell>
+//                       <TableCell>
+//                         {order.paymentProof ? (
+//                           <Button 
+//                             variant="outline" 
+//                             size="sm" 
+//                             className="h-8 text-[10px] gap-1 px-2 border-blue-200 text-blue-600"
+//                             onClick={() => window.open(`${IMAGE_BASE_URL}${order.paymentProof}`, '_blank')}
+//                           >
+//                             <FileText className="w-3 h-3" />
+//                             Receipt
+//                           </Button>
+//                         ) : (
+//                           <span className="text-[10px] italic text-muted-foreground">No Proof</span>
+//                         )}
+//                       </TableCell>
+                      
+//                       {/* ✅ تحديث: تحويل الـ Badge إلى Select للتحكم الكامل بالحالة */}
+//                       <TableCell>
+//                         <select
+//                           className={`text-[10px] font-bold px-2 py-1 rounded border bg-transparent cursor-pointer outline-none transition-colors appearance-none text-center ${getStatusColor(order.status)}`}
+//                           value={order.status}
+//                           onChange={(e) => updateOrder.mutate({ id: order._id || order.dbId, status: e.target.value })}
+//                         >
+//                           <option value="pending">PENDING</option>
+//                           <option value="accepted">ASSIGNED</option>
+//                           <option value="accepted">ACCEPTED</option>
+//                           <option value="onDelivery">ON DELIVERY</option>
+//                           <option value="delivered">DELIVERED</option>
+//                           <option value="cancelled">CANCELLED</option>
+//                         </select>
+//                       </TableCell>
+
+//                       <TableCell>
+//                         {order.status === 'accepted' ? (
+//                           <select 
+//                             className="text-[11px] border rounded h-8 w-full max-w-[120px] bg-background px-1"
+//                             value={typeof order.assignedDriver === 'string' ? order.assignedDriver : order.assignedDriver?._id || ""}
+//                             onChange={(e) => updateOrder.mutate({ id: order._id || order.dbId, assignedDriver: e.target.value })}
+//                           >
+//                             <option value="">Assign Driver...</option>
+//                             {drivers?.map((d: any) => (
+//                               <option key={d._id} value={d._id}>{d.name}</option>
+//                             ))}
+//                           </select>
+//                         ) : (
+//                           <div className="text-[11px] flex items-center gap-1 text-muted-foreground">
+//                             {order.assignedDriver ? (
+//                               <>
+//                                 <Truck className="w-3 h-3 text-primary" /> 
+//                                 {typeof order.assignedDriver === 'object' ? order.assignedDriver.name : 'Assigned'}
+//                               </>
+//                             ) : (
+//                               <span className="italic opacity-50">Not Assigned</span>
+//                             )}
+//                           </div>
+//                         )}
+//                       </TableCell>
+
+//                       <TableCell className="text-right">
+//                         <div className="flex justify-end gap-1.5">
+//                           {order.status === 'pending' && (
+//                             <Button 
+//                               size="sm" 
+//                               variant="ghost" 
+//                               className="h-8 w-8 p-0 hover:text-green-600 hover:bg-green-50"
+//                               title="Mark as Accepted"
+//                               onClick={() => updateOrder.mutate({ id: order._id || order.dbId, status: 'accepted' })}
+//                             >
+//                               <CheckCircle className="w-4 h-4" />
+//                             </Button>
+//                           )}
+
+//                           {order.status === 'accepted' && (
+//                             <Button 
+//                               size="sm" 
+//                               variant="ghost" 
+//                               disabled={!order.assignedDriver}
+//                               className="h-8 w-8 p-0 hover:text-blue-600 hover:bg-blue-50"
+//                               title={order.assignedDriver ? "Ship Order" : "Assign a driver first"}
+//                               onClick={() => updateOrder.mutate({ id: order._id || order.dbId, status: 'onDelivery' })}
+//                             >
+//                               <Truck className="w-4 h-4" />
+//                             </Button>
+//                           )}
+
+//                           <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+//                             <ExternalLink className="w-4 h-4 text-muted-foreground" />
+//                           </Button>
+//                         </div>
+//                       </TableCell>
+//                     </TableRow>
+//                   );
+//                 })
+//               )}
+//             </TableBody>
+//           </Table>
+//         </CardContent>
+//       </Card>
+//     </Layout>
+//   );
+// }
+
+
+
+
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
-import { useOrders, useUpdateOrderStatus } from "@/hooks/use-orders";
+import { useOrders, useUpdateOrder, useDriversList } from "@/hooks/use-orders";
 import {
   Table,
   TableBody,
@@ -13,121 +276,180 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Eye, Truck, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, Truck, CheckCircle, FileText, ExternalLink, MapPin, UserPlus } from "lucide-react";
 import { format } from "date-fns";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+const IMAGE_BASE_URL = "http://localhost:3000";
 
 export default function Orders() {
   const [statusFilter, setStatusFilter] = useState("all");
-  const { data, isLoading } = useOrders({ 
-    status: statusFilter === "all" ? undefined : statusFilter,
-    page: "1",
-    limit: "20"
-  });
   
-  const updateStatus = useUpdateOrderStatus();
+  const { data: orders, isLoading } = useOrders({ 
+    status: statusFilter === "all" ? undefined : statusFilter
+  });
+
+  const { data: drivers } = useDriversList();
+  const updateOrder = useUpdateOrder();
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'delivered': return 'bg-green-100 text-green-700 hover:bg-green-100 border-green-200';
-      case 'pending': return 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-yellow-200';
-      case 'out_for_delivery': return 'bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200';
-      case 'cancelled': return 'bg-red-100 text-red-700 hover:bg-red-100 border-red-200';
+    const s = status?.toLowerCase();
+    switch (s) {
+      case 'pending': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'assigned': return 'bg-indigo-100 text-indigo-700 border-indigo-200'; // لون مميز للتعيين
+      case 'accepted': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'ondelivery': return 'bg-orange-100 text-orange-700 border-orange-200';
+      case 'delivered': return 'bg-green-100 text-green-700 border-green-200';
+      case 'cancelled': return 'bg-red-100 text-red-700 border-red-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+  };
+
+  const formatDate = (dateInput: any) => {
+    if (!dateInput) return "N/A";
+    const dateStr = dateInput.$date ? dateInput.$date : dateInput;
+    try {
+      return format(new Date(dateStr), "MMM d, yyyy HH:mm");
+    } catch (e) {
+      return "Invalid Date";
     }
   };
 
   return (
     <Layout>
-      <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-display font-bold text-foreground">Orders</h1>
-        <p className="text-muted-foreground">Track and manage customer orders.</p>
+      <div className="flex flex-col gap-1 mb-6">
+        <h1 className="text-3xl font-display font-bold text-foreground tracking-tight">Orders Management</h1>
+        <p className="text-muted-foreground">Monitor and manage the delivery lifecycle from assignment to completion.</p>
       </div>
 
-      <Tabs defaultValue="all" onValueChange={setStatusFilter} className="w-full">
+      <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full mb-6">
         <TabsList className="bg-card border border-border/50 p-1">
-          <TabsTrigger value="all">All Orders</TabsTrigger>
+          <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="preparing">Preparing</TabsTrigger>
-          <TabsTrigger value="out_for_delivery">Out for Delivery</TabsTrigger>
+          <TabsTrigger value="assigned">Assigned</TabsTrigger> 
+          <TabsTrigger value="accepted">Accepted</TabsTrigger>          
+          <TabsTrigger value="onDelivery">Shipping</TabsTrigger>
           <TabsTrigger value="delivered">Delivered</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      <Card className="border-border/50 shadow-sm">
+      <Card className="border-border/50 shadow-sm overflow-hidden">
         <CardContent className="p-0">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-muted/50">
               <TableRow>
-                <TableHead>Order #</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead className="w-[150px]">Date & Time</TableHead>
                 <TableHead>Customer</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Status Control</TableHead>
+                <TableHead>Driver Assignment</TableHead>
+                <TableHead className="text-right">Quick Actions</TableHead>
               </TableRow>
             </TableHeader>
+            
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
-                    <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Loading orders...
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : data?.items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                    No orders found.
+                  <TableCell colSpan={6} className="h-32 text-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
                   </TableCell>
                 </TableRow>
               ) : (
-                data?.items.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-mono">{order.orderNumber}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {order.createdAt && format(new Date(order.createdAt), "MMM d, yyyy")}
-                    </TableCell>
-                    <TableCell className="font-medium">{order.customerName}</TableCell>
-                    <TableCell>${order.totalAmount}</TableCell>
+                orders?.map((order: any) => (
+                  <TableRow key={order._id || order.dbId} className="hover:bg-muted/30">
+                    <TableCell className="text-xs">{formatDate(order.createdAt)}</TableCell>
+                    
                     <TableCell>
-                      <Badge variant="outline" className={getStatusColor(order.status)}>
-                        {order.status.replace(/_/g, " ")}
-                      </Badge>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-sm">{order.customerName}</span>
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate max-w-[150px]">{order.customerAddress}</span>
+                        </div>
+                      </div>
                     </TableCell>
+
+                    <TableCell className="font-bold text-sm">
+                      ${(order.totalAmount || order.total || 0).toFixed(2)}
+                    </TableCell>
+                    
+                    {/* Status Control */}
                     <TableCell>
-                      <Badge variant="outline" className={order.paymentStatus === 'paid' ? 'border-green-200 text-green-700' : 'border-yellow-200 text-yellow-700'}>
-                        {order.paymentStatus}
-                      </Badge>
+                      <select
+                        className={`text-[10px] font-bold px-2 py-1 rounded border bg-transparent cursor-pointer outline-none appearance-none text-center ${getStatusColor(order.status)}`}
+                        value={order.status}
+                        onChange={(e) => updateOrder.mutate({ id: order._id || order.dbId, status: e.target.value })}
+                      >
+                        <option value="pending">PENDING</option>
+                        <option value="assigned">ASSIGNED</option>
+                        <option value="accepted">ACCEPTED</option>
+                        <option value="onDelivery">ON DELIVERY</option>
+                        <option value="delivered">DELIVERED</option>
+                        <option value="cancelled">CANCELLED</option>
+                      </select>
                     </TableCell>
+
+                    {/* Driver Assignment Logic */}
+                    <TableCell>
+                      {/* نسمح بتعيين سائق فقط إذا كان الطلب بانتظار المراجعة أو تم تعيينه بالفعل */}
+                      {(order.status === 'pending' || order.status === 'assigned') ? (
+                        <div className="flex items-center gap-2">
+                          <select 
+                            className="text-[11px] border rounded h-8 w-full max-w-[130px] bg-background px-1"
+                            value={typeof order.assignedDriver === 'string' ? order.assignedDriver : order.assignedDriver?._id || ""}
+                            onChange={(e) => {
+                              // عند اختيار سائق، نقوم بتغيير الحالة تلقائياً إلى assigned
+                              updateOrder.mutate({ 
+                                id: order._id || order.dbId, 
+                                assignedDriver: e.target.value,
+                                status: 'assigned' 
+                              });
+                            }}
+                          >
+                            <option value="">Select Driver...</option>
+                            {drivers?.map((d: any) => (
+                              <option key={d._id} value={d._id}>{d.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      ) : (
+                        <div className="text-[11px] flex items-center gap-1.5 text-muted-foreground">
+                          {order.assignedDriver ? (
+                            <>
+                              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                              <span className="font-medium">
+                                {typeof order.assignedDriver === 'object' ? order.assignedDriver.name : 'Assigned'}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="italic opacity-50">No Driver</span>
+                          )}
+                        </div>
+                      )}
+                    </TableCell>
+
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-1.5">
+                        {/* زر سريع للموافقة المبدئية */}
                         {order.status === 'pending' && (
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="h-8 w-8 p-0"
-                            title="Accept Order"
-                            onClick={() => updateStatus.mutate({ id: order.id, status: 'preparing' })}
+                            className="h-8 text-[10px] gap-1 border-yellow-200 text-yellow-600 hover:bg-yellow-50"
+                            onClick={() => updateOrder.mutate({ id: order._id || order.dbId, status: 'assigned' })}
                           >
-                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <UserPlus className="w-3.5 h-3.5" />
+                            Ready to Assign
                           </Button>
                         )}
-                         {order.status === 'preparing' && (
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="h-8 w-8 p-0"
-                            title="Dispatch"
-                            onClick={() => updateStatus.mutate({ id: order.id, status: 'out_for_delivery' })}
-                          >
-                            <Truck className="w-4 h-4 text-blue-600" />
-                          </Button>
-                        )}
+                        
                         <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                          <Eye className="w-4 h-4" />
+                          <ExternalLink className="w-4 h-4 text-muted-foreground" />
                         </Button>
                       </div>
                     </TableCell>

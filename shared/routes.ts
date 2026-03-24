@@ -21,6 +21,7 @@ export const errorSchemas = {
   }),
 };
 
+
 // Helper for paginated response
 const paginated = <T extends z.ZodType>(itemSchema: T) => z.object({
   items: z.array(itemSchema),
@@ -29,11 +30,13 @@ const paginated = <T extends z.ZodType>(itemSchema: T) => z.object({
   limit: z.number(),
 });
 
+
+const url = 'http://localhost:3000'
 export const api = {
   products: {
     list: {
       method: 'GET' as const,
-      path: '/api/products' as const,
+      path:`${url}/api/products` as const,
       input: z.object({
         search: z.string().optional(),
         categoryId: z.string().optional(),
@@ -47,7 +50,7 @@ export const api = {
     },
     get: {
       method: 'GET' as const,
-      path: '/api/products/:id' as const,
+      path:`${url}/api/products/:id`as const,
       responses: {
         200: z.custom<typeof products.$inferSelect>(),
         404: errorSchemas.notFound,

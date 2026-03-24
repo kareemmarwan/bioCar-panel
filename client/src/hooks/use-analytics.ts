@@ -1,14 +1,55 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@shared/routes";
+import { BASE_URL } from "@/constants/apiConfig";
+
+export interface DashboardResponse {
+  success: boolean;
+  data: {
+    totalRevenue: number;
+    totalOrders: number;
+    lowStockProducts: number;
+    recentOrders: {
+      _id: string;
+      totalPrice: number;
+      status: string;
+      createdAt: string;
+      assignedDriver?: {
+        _id: string;
+        name: string;
+        email: string;
+      };
+    }[];
+    monthlySales: {
+      month: string;
+      total: number;
+    }[];
+  };
+}
+
+function getToken() {
+  return localStorage.getItem("token");
+}
 
 export function useAnalytics() {
-  return useQuery({
-    queryKey: [api.analytics.dashboard.path],
+  return useQuery<DashboardResponse>({
+    queryKey: ["dashboard-analytics"],
     queryFn: async () => {
-      const res = await fetch(api.analytics.dashboard.path, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch analytics");
-      return api.analytics.dashboard.responses[200].parse(await res.json());
+      const token = getToken();
+
+      const res = await fetch(`${BASE_URL}/dashboard`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || "Failed to fetch analytics");
+      }
+
+      return res.json();
     },
-    refetchInterval: 30000, // Refresh every 30s
+    refetchInterval: 30000,
   });
 }
+

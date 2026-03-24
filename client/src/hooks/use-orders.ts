@@ -1,110 +1,177 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, buildUrl } from "@shared/routes";
-import { type InsertOrder } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { BASE_URL } from "@/constants/apiConfig";
 
-export function useOrders(params?: { status?: string; search?: string; page?: string; limit?: string }) {
-  const queryKey = [api.orders.list.path, JSON.stringify(params)];
+// ---------------------- الأنماط (Types) ----------------------
+export interface Order {
+  dbId: string;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  customerIdNumber: string;
+  // تطابق مع التعديل الأخير في الباك إيند
+  assignedDriver?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  products: Array<{
+    productId: string | any;
+    name: string;
+    category: string;
+    price: number;
+    quantity: number;
+    _id: string;
+  }>;
+  paymentProof: string;
+  totalAmount: number;
+  status: "pending" | "accepted" | "onDelivery" | "delivered" | "cancelled";
+
+  createdAt: string | { $date: string };
+  updatedAt: string | { $date: string };
+}
+
+export interface Driver {
+  _id: string;
+  name: string;
+  email: string;
+}
+
+// الروابط الأساسية للسيرفر
+// const BASE_URL = "http://localhost:3000/api/orders";
+const USERS_URL = "http://localhost:3000/api/user";
+
+function getToken() {
+  return localStorage.getItem("token");
+}
+
+// ---------------------- Hooks ----------------------
+
+/**
+ * 1. جلب قائمة الطلبات مع الفلترة
+ */
+export function useOrders(params?: { status?: string; search?: string }) {
+  const queryKey = ["/orders", JSON.stringify(params)];
+  const token = getToken();
 
   return useQuery({
     queryKey,
     queryFn: async () => {
-      const url = buildUrl(api.orders.list.path);
-      const searchParams = new URLSearchParams();
+      const url = new URL(BASE_URL);
       if (params) {
         Object.entries(params).forEach(([key, value]) => {
-          if (value) searchParams.append(key, value);
+          if (value && value !== "all") url.searchParams.append(key, value);
         });
       }
-      const res = await fetch(`${url}?${searchParams.toString()}`, { credentials: "include" });
+
+      const res = await fetch(`${BASE_URL}/orders`, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+
       if (!res.ok) throw new Error("Failed to fetch orders");
-      return api.orders.list.responses[200].parse(await res.json());
+      return res.json() as Promise<Order[]>;
     },
   });
 }
 
-export function useOrder(id: number) {
+/**
+ * 2. جلب قائمة السائقين فقط (للأدمن)
+ */
+export function useDriversList() {
+  const token = getToken();
   return useQuery({
-    queryKey: [api.orders.get.path, id],
+    queryKey: ["/drivers"],
     queryFn: async () => {
-      const url = buildUrl(api.orders.get.path, { id });
-      const res = await fetch(url, { credentials: "include" });
+      const res = await fetch(`${BASE_URL}/user/drivers`, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+      if (!res.ok) throw new Error("Failed to fetch drivers");
+      return res.json() as Promise<Driver[]>;
+    },
+  });
+}
+
+/**
+ * 3. التحديث الشامل للطلب (تغيير الحالة أو تعيين سائق)
+ * متوافق مع دالة updateOrder في السيرفر التي تستقبل req.body
+ */
+export function useUpdateOrder() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const token = getToken();
+
+  return useMutation({
+    mutationFn: async ({ id, status, assignedDriver }: { id: string; status?: string; assignedDriver?: string }) => {
+      const res = await fetch(`${BASE_URL}/${id}`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status, assignedDriver }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ message: "Update failed" }));
+        throw new Error(error.message || "Failed to update order");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/orders"] });
+      toast({ title: "Success", description: "Order updated successfully." });
+    },
+    onError: (error: any) => {
+      toast({ title: "Update Error", description: error.message, variant: "destructive" });
+    }
+  });
+}
+
+/**
+ * 4. جلب طلب واحد بالتفصيل
+ */
+export function useOrder(id: string) {
+  const token = getToken();
+  return useQuery({
+    queryKey: ["/orders", id],
+    queryFn: async () => {
+      const res = await fetch(`${BASE_URL}/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) throw new Error("Failed to fetch order details");
-      return api.orders.get.responses[200].parse(await res.json());
+      return res.json() as Promise<Order>;
     },
     enabled: !!id,
   });
 }
 
-export function useCreateOrder() {
+/**
+ * 5. حذف طلب (اختياري للأدمن)
+ */
+export function useDeleteOrder() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const token = getToken();
 
   return useMutation({
-    mutationFn: async (data: any) => { // Using any temporarily as extend type is complex
-      const res = await fetch(api.orders.create.path, {
-        method: api.orders.create.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-        credentials: "include",
+    mutationFn: async (id: string) => {
+      const res = await fetch(`${BASE_URL}/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to create order");
-      return api.orders.create.responses[201].parse(await res.json());
+      if (!res.ok) throw new Error("Delete failed");
+      return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [api.orders.list.path] });
-      toast({ title: "Order Created", description: "Order has been successfully recorded." });
-    },
-    onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
-  });
-}
-
-export function useUpdateOrderStatus() {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      const url = buildUrl(api.orders.updateStatus.path, { id });
-      const res = await fetch(url, {
-        method: api.orders.updateStatus.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to update status");
-      return api.orders.updateStatus.responses[200].parse(await res.json());
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [api.orders.list.path] });
-      queryClient.invalidateQueries({ queryKey: [api.orders.get.path] });
-      toast({ title: "Status Updated", description: "Order status has been updated." });
+      queryClient.invalidateQueries({ queryKey: ["/orders"] });
+      toast({ title: "Deleted", description: "Order has been removed." });
     },
   });
 }
 
-export function useAssignDriver() {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async ({ orderId, driverId }: { orderId: number; driverId: number }) => {
-      const url = buildUrl(api.orders.assignDriver.path, { id: orderId });
-      const res = await fetch(url, {
-        method: api.orders.assignDriver.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ driverId }),
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to assign driver");
-      return api.orders.assignDriver.responses[200].parse(await res.json());
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [api.orders.list.path] });
-      queryClient.invalidateQueries({ queryKey: [api.orders.get.path] });
-      toast({ title: "Driver Assigned", description: "Driver has been assigned to order." });
-    },
-  });
-}
