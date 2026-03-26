@@ -44,7 +44,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const IMAGE_BASE_URL = "http://localhost:3000";
 
 export default function Categories() {
   const [search, setSearch] = useState("");
@@ -124,7 +123,7 @@ export default function Categories() {
                     <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden border border-border">
                       {category.image ? (
                         <img 
-                          src={category.image.startsWith('http') ? category.image : `${IMAGE_BASE_URL}${category.image}`} 
+                          src={category.image.startsWith('http') ? category.image : `${category.image}`} 
                           alt={category.name?.en} 
                           className="w-full h-full object-cover" 
                         />
@@ -317,7 +316,7 @@ function CategoryDialog({
                   {category?.image && !selectedFile && (
                     <div className="flex items-center gap-2 p-2 border rounded-md bg-muted/50">
                       <img 
-                        src={`${IMAGE_BASE_URL}${category.image}`} 
+                        src={`${category.image}`} 
                         alt="Current" 
                         className="w-12 h-12 object-cover rounded"
                       />

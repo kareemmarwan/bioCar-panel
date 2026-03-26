@@ -37,9 +37,7 @@ export interface Driver {
   email: string;
 }
 
-// الروابط الأساسية للسيرفر
-// const BASE_URL = "http://localhost:3000/api/orders";
-const USERS_URL = "http://localhost:3000/api/user";
+
 
 function getToken() {
   return localStorage.getItem("token");
