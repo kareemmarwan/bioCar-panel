@@ -71,6 +71,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <ScrollArea className="flex-1">
           {/* pt-20 في الموبايل لتعطي مسافة رائعة أسفل شريط الـ Navbar العلوي الجديد */}
           <div className="max-w-7xl mx-auto px-4 md:px-8 pt-20 lg:pt-8 pb-10 space-y-8">
+
             {children}
           </div>
         </ScrollArea>
